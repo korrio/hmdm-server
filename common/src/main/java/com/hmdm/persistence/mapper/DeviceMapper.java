@@ -210,4 +210,15 @@ public interface DeviceMapper {
 
     @Select("SELECT id FROM devices")
     List<Integer> getAllDeviceIds();
+
+    @Update("UPDATE groups SET credit = #{credit} WHERE id = #{groupId}")
+    void updateGroupCredit(@Param("groupId") Integer groupId, @Param("credit") Integer credit);
+
+    @Select("SELECT COALESCE(SUM(credit), 0) FROM groups WHERE credit IS NOT NULL")
+    Integer getTotalCreditDirect();
+
+    @Select("SELECT COALESCE(SUM(credit), 0) FROM groups WHERE id IN " +
+            "<foreach item='groupId' index='index' collection='groupIds' open='(' separator=',' close=')'>" +
+            "#{groupId}</foreach> AND credit IS NOT NULL")
+    Integer getTotalCreditByGroupIdsDirect(@Param("groupIds") List<Integer> groupIds);
 }

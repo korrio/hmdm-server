@@ -36,7 +36,8 @@ public enum LogLevel {
     WARNING(2),
     INFO(3),
     DEBUG(4),
-    VERBOSE(5);
+    VERBOSE(5),
+    LOCATION(6);
 
 
     /**

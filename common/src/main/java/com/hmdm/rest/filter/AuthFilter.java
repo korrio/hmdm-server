@@ -61,6 +61,15 @@ public class AuthFilter implements Filter {
     }
 
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        // Allow OPTIONS preflight requests to pass through without authentication
+        if (servletRequest instanceof HttpServletRequest) {
+            String method = ((HttpServletRequest) servletRequest).getMethod();
+            if ("OPTIONS".equalsIgnoreCase(method)) {
+                filterChain.doFilter(servletRequest, servletResponse);
+                return;
+            }
+        }
+
         // If security context is already established then let the request to continue without check
         if (SecurityContext.get() != null && SecurityContext.get().getCurrentUser().isPresent()) {
             User user = SecurityContext.get().getCurrentUser().get();

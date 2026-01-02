@@ -19,7 +19,8 @@ public class MainRestModule extends ServletModule {
     }
 
     protected void configureServlets() {
-        this.filter("/rest/*").through(ApiOriginFilter.class);
+        // CORS is handled by Tomcat CorsFilter in web.xml
+        // this.filter("/rest/*").through(ApiOriginFilter.class);
         // Deprecated and shouldn't be used
         this.filter("/api/*").through(ApiOriginFilter.class);
     }

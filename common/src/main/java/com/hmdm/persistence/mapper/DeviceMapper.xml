@@ -519,7 +519,8 @@
     </insert>
 
     <select id="getAllGroups" resultType="Group">
-        SELECT groups.*
+        SELECT groups.id, groups.name, groups.customerId, groups.credit,
+               (SELECT COUNT(*) FROM deviceGroups WHERE groupId = groups.id) AS deviceCount
         FROM groups
         INNER JOIN users ON users.id = #{userId}
         LEFT JOIN userDeviceGroupsAccess access ON groups.id = access.groupId AND access.userId = users.id
@@ -529,7 +530,8 @@
     </select>
 
     <select id="getAllGroupsByValue" resultType="Group">
-        SELECT groups.*
+        SELECT groups.id, groups.name, groups.customerId, groups.credit,
+               (SELECT COUNT(*) FROM deviceGroups WHERE groupId = groups.id) AS deviceCount
         FROM groups
         INNER JOIN users ON users.id = #{userId}
         LEFT JOIN userDeviceGroupsAccess access ON groups.id = access.groupId AND access.userId = users.id
@@ -547,6 +549,5 @@
             (${id}, #{item.applicationId}, #{item.name}, #{item.type}, #{item.value}, #{item.comment}, #{item.readonly}, #{item.lastUpdate})
         </foreach>
     </insert>
-
 
 </mapper>

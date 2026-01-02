@@ -29,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import com.hmdm.persistence.UserDAO;
 import com.hmdm.persistence.domain.User;
 import com.hmdm.rest.json.LookupItem;
+import com.hmdm.rest.json.CreditUpdateRequest;
 import com.hmdm.security.SecurityContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -175,6 +176,68 @@ public class GroupResource {
         } else {
             this.groupDAO.removeGroupById(id);
             return Response.OK();
+        }
+    }
+
+    // =================================================================================================================
+    @ApiOperation(
+            value = "Update group credit",
+            notes = "Update the credit value for a device group (super admin only)"
+    )
+    @POST
+    @Path("/{id}/credit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateGroupCredit(
+            @PathParam("id") @ApiParam("Device group ID") Integer id,
+            CreditUpdateRequest request) {
+        try {
+            User user = SecurityContext.get().getCurrentUser().orElse(null);
+            if (user == null || !user.isAllDevicesAvailable()) {
+                log.error("Unauthorized attempt to update group credit by user " +
+                        SecurityContext.get().getCurrentUserName());
+                return Response.PERMISSION_DENIED();
+            }
+
+            this.groupDAO.updateGroupCredit(id, request.getCredit());
+            return Response.OK();
+        } catch (Exception e) {
+            log.error("Failed to update group credit", e);
+            return Response.INTERNAL_ERROR();
+        }
+    }
+
+    // =================================================================================================================
+    @ApiOperation(
+            value = "Get total credit",
+            notes = "Get the sum of credits for user's groups"
+    )
+    @GET
+    @Path("/totalcredit")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTotalCredit() {
+        try {
+            User user = SecurityContext.get().getCurrentUser().orElse(null);
+            if (user == null) {
+                return Response.OK(0);
+            }
+
+            Integer totalCredit;
+            if (user.isAllDevicesAvailable()) {
+                // Sum all group credits
+                totalCredit = this.groupDAO.getTotalCredit();
+            } else {
+                // Sum credits of user's assigned groups
+                totalCredit = this.groupDAO.getTotalCreditByGroupIds(
+                        user.getGroups().stream()
+                                .map(LookupItem::getId)
+                                .collect(Collectors.toList())
+                );
+            }
+            return Response.OK(totalCredit);
+        } catch (Exception e) {
+            log.error("Failed to get total credit", e);
+            return Response.INTERNAL_ERROR();
         }
     }
 }

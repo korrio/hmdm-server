@@ -9,14 +9,13 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.hmdm.plugins.devicelog.model;
@@ -33,7 +32,7 @@ import java.util.Date;
 public abstract class DeviceLogRecord implements Serializable {
 
     private static final long serialVersionUID = 7956573806273714751L;
-    
+
     @ApiModelProperty("A timestamp of creation of log record (in milliseconds since epoch time")
     private Long createTime;
 
@@ -102,6 +101,19 @@ public abstract class DeviceLogRecord implements Serializable {
 
     public void setSeverity(LogLevel severity) {
         this.severity = severity;
+    }
+
+    // Helper method for MyBatis to set severity from String
+    public void setSeverityFromString(String severityString) {
+        if (severityString != null && !severityString.isEmpty()) {
+            try {
+                this.severity = LogLevel.valueOf(severityString.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                this.severity = LogLevel.NONE;
+            }
+        } else {
+            this.severity = LogLevel.NONE;
+        }
     }
 
     public String getMessage() {

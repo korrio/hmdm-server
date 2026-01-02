@@ -145,7 +145,9 @@ public class PostgresDeviceLogDAO extends AbstractDAO<PostgresDeviceLogRecord> i
                     postgresRecord.setCreateTime(log.getTimestamp());
                     postgresRecord.setDeviceId(dbDevice.getId());
                     postgresRecord.setMessage(log.getMessage());
-                    postgresRecord.setSeverity(LogLevel.byId(log.getLogLevel()).orElse(LogLevel.NONE));
+                    // Check if this is a location message (contains latitude/longitude)
+                    LogLevel severity = detectLocationSeverity(log.getMessage(), log.getLogLevel());
+                    postgresRecord.setSeverity(severity);
                     postgresRecord.setIpAddress(ipAddress);
 
                     return postgresRecord;
@@ -229,6 +231,21 @@ public class PostgresDeviceLogDAO extends AbstractDAO<PostgresDeviceLogRecord> i
         }
 
         return new ArrayList<>();
+    }
+
+    /**
+     * <p>Detects the severity level for a log record.
+     * If the message contains location data (latitude/longitude), returns LOCATION.</p>
+     *
+     * @param message the log message
+     * @param logLevel the original log level from the device
+     * @return the appropriate LogLevel
+     */
+    private LogLevel detectLocationSeverity(String message, int logLevel) {
+        if (message != null && message.contains("\"latitude\"") && message.contains("\"longitude\"")) {
+            return LogLevel.LOCATION;
+        }
+        return LogLevel.byId(logLevel).orElse(LogLevel.NONE);
     }
 
     /**

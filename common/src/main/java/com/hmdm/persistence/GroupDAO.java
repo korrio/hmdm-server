@@ -28,6 +28,8 @@ import com.hmdm.persistence.domain.User;
 import com.hmdm.persistence.mapper.DeviceMapper;
 import com.hmdm.security.SecurityContext;
 import com.hmdm.security.SecurityException;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 import java.util.Optional;
@@ -85,6 +87,21 @@ public class GroupDAO extends AbstractDAO<Group> {
 
     public Group getGroupById(Integer id) {
         return getSingleRecord(() -> this.mapper.getGroupById(id), SecurityException::onGroupAccessViolation);
+    }
+
+    public void updateGroupCredit(Integer groupId, Integer credit) {
+        this.mapper.updateGroupCredit(groupId, credit);
+    }
+
+    public Integer getTotalCredit() {
+        return this.mapper.getTotalCreditDirect();
+    }
+
+    public Integer getTotalCreditByGroupIds(List<Integer> groupIds) {
+        if (groupIds == null || groupIds.isEmpty()) {
+            return 0;
+        }
+        return this.mapper.getTotalCreditByGroupIdsDirect(groupIds);
     }
 
 }

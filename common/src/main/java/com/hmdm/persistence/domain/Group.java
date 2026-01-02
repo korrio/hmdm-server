@@ -42,6 +42,12 @@ public class Group implements CustomerData, Serializable {
     @ApiModelProperty(hidden = true)
     private int customerId;
 
+    @ApiModelProperty("Group credit balance")
+    private Integer credit;
+
+    @ApiModelProperty("Number of devices in the group")
+    private Integer deviceCount;
+
     public Group() {
     }
 
@@ -69,5 +75,21 @@ public class Group implements CustomerData, Serializable {
     @Override
     public void setCustomerId(int customerId) {
         this.customerId = customerId;
+    }
+
+    public Integer getCredit() {
+        return credit;
+    }
+
+    public void setCredit(Integer credit) {
+        this.credit = credit;
+    }
+
+    public Integer getDeviceCount() {
+        return deviceCount;
+    }
+
+    public void setDeviceCount(Integer deviceCount) {
+        this.deviceCount = deviceCount;
     }
 }

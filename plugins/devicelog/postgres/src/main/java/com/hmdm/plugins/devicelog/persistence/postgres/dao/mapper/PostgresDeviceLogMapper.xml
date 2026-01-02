@@ -23,6 +23,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hmdm.plugins.devicelog.persistence.postgres.dao.mapper.PostgresDeviceLogMapper">
 
+    <resultMap id="logRecordResult" type="PostgresDeviceLogRecord" autoMapping="true">
+        <id property="id" column="id"/>
+    </resultMap>
+
     <resultMap id="settingsResult" type="PostgresDeviceLogPluginSettings">
         <result property="id" column="settingsId"/>
         <result property="customerId" column="customerId"/>
@@ -80,8 +84,10 @@
 
     <select id="findAllLogRecordsByCustomerId"
             parameterType="com.hmdm.plugins.devicelog.rest.json.DeviceLogFilter"
-            resultType="PostgresDeviceLogRecord">
-        SELECT data.*, devices.number AS deviceNumber, applications.pkg AS applicationPkg
+            resultMap="logRecordResult">
+        SELECT data.id, data.customerid, data.createtime, data.deviceid, data.applicationid,
+               data.ipaddress, data.severity, data.message,
+               devices.number AS deviceNumber, applications.pkg AS applicationPkg
         FROM plugin_devicelog_log data
         INNER JOIN devices ON devices.id = data.deviceid
         INNER JOIN users ON users.id = #{userId}
@@ -99,6 +105,9 @@
             AND (
             devices.number ILIKE #{deviceFilter}
             )
+        </if>
+        <if test="deviceId != null">
+            AND data.deviceid = #{deviceId}
         </if>
         <if test="applicationFilter != null">
             AND (
@@ -165,6 +174,9 @@
             AND (
             devices.number ILIKE #{deviceFilter}
             )
+        </if>
+        <if test="deviceId != null">
+            AND data.deviceid = #{deviceId}
         </if>
         <if test="applicationFilter != null">
             AND (

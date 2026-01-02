@@ -111,4 +111,38 @@
         </rollback>
     </changeSet>
 
+    <!-- Performance indexes for plugin_devicelog_log -->
+    <changeSet id="plugin-devicelog-performance-2024-01-02" author="admin" context="common">
+        <comment>Add performance indexes for plugin_devicelog_log table</comment>
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_devicelog_deviceid ON plugin_devicelog_log(deviceId);
+            CREATE INDEX IF NOT EXISTS idx_devicelog_createtime ON plugin_devicelog_log(createTime);
+            CREATE INDEX IF NOT EXISTS idx_devicelog_customerid ON plugin_devicelog_log(customerId);
+            CREATE INDEX IF NOT EXISTS idx_devicelog_severityorder ON plugin_devicelog_log(severityOrder);
+            CREATE INDEX IF NOT EXISTS idx_devicelog_device_createtime ON plugin_devicelog_log(deviceId, createTime DESC);
+            CREATE INDEX IF NOT EXISTS idx_devicelog_customer_device_time ON plugin_devicelog_log(customerId, deviceId, createTime DESC);
+        </sql>
+        <rollback>
+            DROP INDEX IF EXISTS idx_devicelog_deviceid;
+            DROP INDEX IF EXISTS idx_devicelog_createtime;
+            DROP INDEX IF EXISTS idx_devicelog_customerid;
+            DROP INDEX IF EXISTS idx_devicelog_severityorder;
+            DROP INDEX IF EXISTS idx_devicelog_device_createtime;
+            DROP INDEX IF EXISTS idx_devicelog_customer_device_time;
+        </rollback>
+    </changeSet>
+
+    <!-- Add logs rotation support column -->
+    <changeSet id="plugin-devicelog-rotation-2024-01-02" author="admin" context="common">
+        <comment>Add rotation tracking columns to plugin_devicelog_settings</comment>
+        <sql>
+            ALTER TABLE plugin_devicelog_settings ADD COLUMN IF NOT EXISTS autoPurgeEnabled BOOLEAN DEFAULT TRUE;
+            ALTER TABLE plugin_devicelog_settings ADD COLUMN IF NOT EXISTS lastPurgeTime BIGINT;
+        </sql>
+        <rollback>
+            ALTER TABLE plugin_devicelog_settings DROP COLUMN IF EXISTS lastPurgeTime;
+            ALTER TABLE plugin_devicelog_settings DROP COLUMN IF EXISTS autoPurgeEnabled;
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>

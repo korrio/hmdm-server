@@ -58,6 +58,12 @@ public class DeviceLogFilter implements Serializable {
     private String deviceFilter;
 
     /**
+     * <p>An ID of a device for filtering the data records by device.</p>
+     */
+    @ApiModelProperty(hidden = true)
+    private Integer deviceId;
+
+    /**
      * <p>A filter used for filtering the data records by device.</p>
      */
     @ApiModelProperty("A filter used for filtering the data records by message")
@@ -164,6 +170,14 @@ public class DeviceLogFilter implements Serializable {
 
     public void setDeviceFilter(String deviceFilter) {
         this.deviceFilter = deviceFilter;
+    }
+
+    public Integer getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(Integer deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getMessageFilter() {

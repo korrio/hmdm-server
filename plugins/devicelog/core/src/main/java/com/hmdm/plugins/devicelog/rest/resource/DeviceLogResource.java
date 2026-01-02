@@ -27,6 +27,7 @@ import com.hmdm.persistence.UnsecureDAO;
 import com.hmdm.persistence.domain.Device;
 import com.hmdm.plugin.service.PluginStatusCache;
 import com.hmdm.plugins.devicelog.model.DeviceLogRecord;
+import com.hmdm.plugins.devicelog.model.LogLevel;
 import com.hmdm.plugins.devicelog.persistence.DeviceLogDAO;
 import com.hmdm.plugins.devicelog.rest.json.AppliedDeviceLogRule;
 import com.hmdm.plugins.devicelog.rest.json.DeviceLogFilter;
@@ -288,6 +289,50 @@ public class DeviceLogResource {
             }
         } catch (Exception e) {
             logger.error("Unexpected error when handling request for device log rules", e);
+            return Response.INTERNAL_ERROR();
+        }
+    }
+
+    /**
+     * <p>Gets the list of location log records for a device.</p>
+     *
+     * @param deviceId an ID of the device.
+     * @return a response with list of location log records for the device.
+     */
+    @ApiOperation(
+            value = "Get device location logs",
+            notes = "Gets the list of location log records (severity=LOCATION) for a device",
+            response = DeviceLogRecord.class,
+            responseContainer = "List",
+            authorizations = {@Authorization("Bearer Token")}
+    )
+    @GET
+    @Path("/location/{deviceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLocationLogs(@PathParam("deviceId") int deviceId) {
+        try {
+            if (!SecurityContext.get().hasPermission("plugin_devicelog_access") && !SecurityContext.get().isSuperAdmin()) {
+                logger.error("Unauthorized attempt to get device location logs by user " +
+                        SecurityContext.get().getCurrentUserName());
+                return Response.PERMISSION_DENIED();
+            }
+        } catch (Exception e) {
+            logger.error("Security context error", e);
+            return Response.PERMISSION_DENIED();
+        }
+        try {
+            DeviceLogFilter filter = new DeviceLogFilter();
+            filter.setDeviceId(deviceId);
+            // Use -1 to match exact severity (LOCATION has severityOrder=0 in DB)
+            filter.setSeverity(-1);
+            filter.setMessageFilter("{\"latitude\""); // Filter by location messages
+            filter.setPageNum(1);
+            filter.setPageSize(10000); // Get all location logs
+
+            List<DeviceLogRecord> records = this.deviceLogDAO.findAll(filter);
+            return Response.OK(records);
+        } catch (Exception e) {
+            logger.error("Failed to get location logs for device {} due to unexpected error", deviceId, e);
             return Response.INTERNAL_ERROR();
         }
     }
