@@ -529,6 +529,35 @@
         ORDER BY name
     </select>
 
+    <select id="getAllGroupsUnsecure" resultType="Group">
+        SELECT groups.id, groups.name, groups.customerId, 0 AS credit,
+               (SELECT COUNT(*) FROM deviceGroups WHERE groupId = groups.id) AS deviceCount
+        FROM groups
+        WHERE groups.customerId = #{customerId}
+        ORDER BY name
+    </select>
+
+    <resultMap id="deviceWithGroupsResult" type="Device" autoMapping="true">
+        <result property="id" column="id"/>
+        <collection property="groups" ofType="com.hmdm.rest.json.LookupItem" autoMapping="true">
+            <result property="id" column="groupId"/>
+            <result property="name" column="groupName"/>
+        </collection>
+    </resultMap>
+
+    <select id="getAllCustomerDevicesWithGroups" resultMap="deviceWithGroupsResult">
+        SELECT devices.id, devices.number, devices.description, devices.lastUpdate,
+               devices.configurationId, devices.info, devices.imei, devices.phone, devices.customerId,
+               devices.custom1, devices.custom2, devices.custom3, devices.oldNumber, devices.fastSearch,
+               devices.enrollTime, devices.publicIp,
+               groups.id AS groupId, groups.name AS groupName
+        FROM devices
+        LEFT JOIN deviceGroups ON devices.id = deviceGroups.deviceId
+        LEFT JOIN groups ON deviceGroups.groupId = groups.id
+        WHERE devices.customerId = #{customerId}
+        ORDER BY devices.id, groups.name
+    </select>
+
     <select id="getAllGroupsByValue" resultType="Group">
         SELECT groups.id, groups.name, groups.customerId, groups.credit,
                (SELECT COUNT(*) FROM deviceGroups WHERE groupId = groups.id) AS deviceCount

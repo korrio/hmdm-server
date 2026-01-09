@@ -45,7 +45,7 @@ angular.module('headwind-kiosk')
             var password = null;
             if (!$scope.publicKey) {
                 // By default, sending a MD5 hash
-                password = md5($scope.login.password).toUpperCase();
+                password = md5($scope.login.password);
             } else {
                 var encrypt = new JSEncrypt();
                 encrypt.setPublicKey($scope.publicKey);

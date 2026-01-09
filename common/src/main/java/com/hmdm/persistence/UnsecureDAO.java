@@ -379,6 +379,10 @@ public class UnsecureDAO {
         return this.deviceMapper.getAllCustomerDevices(customerId);
     }
 
+    public List<Device> getAllCustomerDevicesWithGroups(int customerId) {
+        return this.deviceMapper.getAllCustomerDevicesWithGroups(customerId);
+    }
+
     /**
      * <p>Gets the device referenced by the specified ID.</p>
      *
@@ -693,6 +697,22 @@ public class UnsecureDAO {
 
     public void updateUploadedFile(UploadedFile uploadedFile) {
         uploadedFileMapper.update(uploadedFile);
+    }
+
+    // Custom API methods (from /html/index.php)
+
+    /**
+     * Get all groups without security checks
+     */
+    public List<com.hmdm.persistence.domain.Group> getAllGroupsUnsecure() {
+        return this.deviceMapper.getAllGroupsUnsecure(1);
+    }
+
+    /**
+     * Get group by ID without security checks
+     */
+    public com.hmdm.persistence.domain.Group getGroupByIdUnsecure(Integer id) {
+        return this.deviceMapper.getGroupById(id);
     }
 
 }

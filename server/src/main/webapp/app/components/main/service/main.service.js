@@ -10,7 +10,12 @@ angular.module('headwind-kiosk')
             updateDeviceGroupBulk: {url: 'rest/private/devices/groupBulk', method: 'POST'},
             getDeviceApplicationSettings: {url: 'rest/private/devices/:id/applicationSettings', method: 'GET'},
             saveDeviceApplicationSettings: {url: 'rest/private/devices/:id/applicationSettings', method: 'POST'},
-            notifyDeviceOnAppSettingsUpdate: {url: 'rest/private/devices/:id/applicationSettings/notify', method: 'POST'}
+            notifyDeviceOnAppSettingsUpdate: {url: 'rest/private/devices/:id/applicationSettings/notify', method: 'POST'},
+            // Device commands
+            rebootDevice: {url: 'plugins/devicereset/private/reboot/:number', method: 'POST'},
+            factoryResetDevice: {url: 'plugins/devicereset/private/factory-reset/:number', method: 'POST'},
+            lockDevice: {url: 'plugins/devicereset/private/lock/:number', method: 'POST'},
+            resetPasswordDevice: {url: 'plugins/devicereset/private/password-reset/:number', method: 'POST', params: {password: '@password'}}
         });
     })
     .factory('configurationService', function ($resource) {

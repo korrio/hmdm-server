@@ -79,6 +79,18 @@ public interface DeviceMapper {
             "WHERE customerId = #{customerId}"})
     List<Device> getAllCustomerDevices(@Param("customerId") int customerId);
 
+    @Select({"SELECT devices.id AS id, devices.number, devices.description, devices.lastUpdate, " +
+            "devices.configurationId, devices.info, devices.imei, devices.phone, devices.customerId, " +
+            "devices.custom1, devices.custom2, devices.custom3, devices.oldNumber, devices.fastSearch, " +
+            "devices.enrollTime, devices.publicIp, " +
+            "groups.id AS groupId, groups.name AS groupName " +
+            "FROM devices " +
+            "LEFT JOIN deviceGroups ON devices.id = deviceGroups.deviceId " +
+            "LEFT JOIN groups ON deviceGroups.groupId = groups.id " +
+            "WHERE devices.customerId = #{customerId} " +
+            "ORDER BY devices.id, groups.name"})
+    List<Device> getAllCustomerDevicesWithGroups(@Param("customerId") int customerId);
+
     List<Device> getAllDevices(DeviceSearchRequest deviceSearchRequest);
 
     @Select({"SELECT COUNT(*) " +
@@ -150,6 +162,8 @@ public interface DeviceMapper {
 
     List<Group> getAllGroups(@Param("customerId") int customerId,
                              @Param("userId") Integer userId);
+
+    List<Group> getAllGroupsUnsecure(@Param("customerId") int customerId);
 
     List<Group> getAllGroupsByValue(@Param("customerId") int customerId,
                                     @Param("value") String value,

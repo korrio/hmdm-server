@@ -27,6 +27,7 @@ import javax.inject.Named;
 
 import com.hmdm.persistence.domain.ApplicationType;
 import com.hmdm.rest.json.NameResponse;
+import com.hmdm.rest.json.RegisterRequest;
 import com.hmdm.util.FileUtil;
 import net.glxn.qrgen.core.image.ImageType;
 import net.glxn.qrgen.javase.QRCode;
@@ -45,6 +46,8 @@ import com.hmdm.persistence.UnsecureDAO;
 import com.hmdm.persistence.domain.Application;
 import com.hmdm.persistence.domain.Customer;
 import com.hmdm.persistence.domain.Device;
+import com.hmdm.persistence.domain.User;
+import com.hmdm.persistence.domain.UserRole;
 import com.hmdm.rest.json.Response;
 import com.hmdm.rest.json.UploadAppRequest;
 import com.hmdm.util.CryptoUtil;
@@ -62,7 +65,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.hmdm.util.FileUtil.writeToFile;
 
@@ -310,6 +316,180 @@ public class PublicResource {
         } catch (Exception e) {
             e.printStackTrace();
             return javax.ws.rs.core.Response.serverError().build();
+        }
+    }
+
+    // =================================================================================================================
+    // Custom API Endpoints (from /html/index.php)
+
+    @ApiOperation(
+            value = "Get all groups with device count",
+            notes = "Gets the list of all device groups with device count"
+    )
+    @GET
+    @Path("/api/groups")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getGroups() {
+        try {
+            List<com.hmdm.persistence.domain.Group> groups = this.unsecureDAO.getAllGroupsUnsecure();
+            return Response.OK(groups);
+        } catch (Exception e) {
+            logger.error("Failed to get groups", e);
+            return Response.INTERNAL_ERROR();
+        }
+    }
+
+    @ApiOperation(
+            value = "Get group by ID",
+            notes = "Gets a specific group by ID with device count"
+    )
+    @GET
+    @Path("/api/group/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getGroupById(@PathParam("id") @ApiParam("Group ID") Integer id) {
+        try {
+            com.hmdm.persistence.domain.Group group = this.unsecureDAO.getGroupByIdUnsecure(id);
+            if (group == null) {
+                return Response.OBJECT_NOT_FOUND_ERROR();
+            }
+            return Response.OK(group);
+        } catch (Exception e) {
+            logger.error("Failed to get group by id: " + id, e);
+            return Response.INTERNAL_ERROR();
+        }
+    }
+
+    @ApiOperation(
+            value = "Get all devices with location",
+            notes = "Gets all devices with their location data"
+    )
+    @GET
+    @Path("/api/location")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAllLocations() {
+        try {
+            List<Device> devices = this.unsecureDAO.getAllCustomerDevicesWithGroups(1);
+            List<Map<String, Object>> result = devices.stream().map(device -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", device.getId());
+                map.put("deviceid", device.getId());
+                map.put("number", device.getNumber());
+                map.put("groups", device.getGroups() != null ? device.getGroups() : new ArrayList<>());
+
+                // Parse location from info JSON
+                if (device.getInfo() != null) {
+                    try {
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        Map<String, Object> info = mapper.readValue(device.getInfo(), Map.class);
+                        if (info.containsKey("location") && info.get("location") != null) {
+                            map.put("location", info.get("location"));
+                        }
+                    } catch (Exception e) {
+                        // Ignore parsing errors
+                    }
+                }
+                return map;
+            }).collect(Collectors.toList());
+
+            return Response.OK(result);
+        } catch (Exception e) {
+            logger.error("Failed to get locations", e);
+            return Response.INTERNAL_ERROR();
+        }
+    }
+
+    @ApiOperation(
+            value = "Get device location by ID",
+            notes = "Gets the location data for a specific device by ID"
+    )
+    @GET
+    @Path("/api/location/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLocationById(@PathParam("id") @ApiParam("Device ID") Integer id) {
+        try {
+            Device device = this.unsecureDAO.getDeviceById(id);
+            if (device == null) {
+                return Response.DEVICE_NOT_FOUND_ERROR();
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", device.getId());
+            result.put("number", device.getNumber());
+
+            // Parse location from info JSON
+            if (device.getInfo() != null) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    Map<String, Object> info = mapper.readValue(device.getInfo(), Map.class);
+                    if (info.containsKey("location") && info.get("location") != null) {
+                        Object location = info.get("location");
+                        if (location instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> locMap = (Map<String, Object>) location;
+                            result.put("lat", locMap.get("lat"));
+                            result.put("lon", locMap.get("lon"));
+                        }
+                    }
+                } catch (Exception e) {
+                    // Ignore parsing errors
+                }
+            }
+
+            return Response.OK(result);
+        } catch (Exception e) {
+            logger.error("Failed to get location by id: " + id, e);
+            return Response.INTERNAL_ERROR();
+        }
+    }
+
+    @ApiOperation(
+            value = "Get device by number",
+            notes = "Gets device details by device number"
+    )
+    @GET
+    @Path("/api/device/{number}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDeviceByNumber(@PathParam("number") @ApiParam("Device number") String number) {
+        try {
+            Device device = this.unsecureDAO.getDeviceByNumber(number);
+            if (device == null) {
+                return Response.DEVICE_NOT_FOUND_ERROR();
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", device.getId());
+            result.put("number", device.getNumber());
+            result.put("description", device.getDescription());
+            result.put("imei", device.getImei());
+            result.put("phone", device.getPhone());
+            result.put("publicIp", device.getPublicIp());
+            result.put("lastUpdate", device.getLastUpdate());
+            result.put("enrollTime", device.getEnrollTime());
+            result.put("groups", device.getGroups() != null ? device.getGroups() : new ArrayList<>());
+
+            // Parse info JSON
+            if (device.getInfo() != null) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    Map<String, Object> info = mapper.readValue(device.getInfo(), Map.class);
+                    result.put("androidVersion", info.get("androidVersion"));
+                    result.put("launcherVersion", info.get("launcherVersion"));
+                    result.put("serial", info.get("serial"));
+                    result.put("mdmMode", info.get("mdmMode"));
+                    result.put("kioskMode", info.get("kioskMode"));
+                    result.put("model", info.get("model"));
+                    result.put("batteryLevel", info.get("batteryLevel"));
+                    result.put("batteryCharging", info.get("batteryCharging"));
+                    result.put("location", info.get("location"));
+                } catch (Exception e) {
+                    // Ignore parsing errors
+                }
+            }
+
+            return Response.OK(result);
+        } catch (Exception e) {
+            logger.error("Failed to get device by number: " + number, e);
+            return Response.INTERNAL_ERROR();
         }
     }
 }

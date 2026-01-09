@@ -85,6 +85,20 @@ document.localization ['en_US'] = {
     'devices.file.not.installed': '- ${file}: not installed.',
     'devices.file.lastUpdate.differs': '- ${file}: difference in modification time ${diff} min',
 
+    // Device commands
+    'devices.button.reboot': 'Reboot',
+    'devices.button.factoryReset': 'Factory Reset',
+    'devices.button.lock': 'Lock Device',
+    'devices.button.resetPassword': 'Reset Password',
+    'devices.label.newPassword': 'New Password',
+    'devices.placeholder.password': 'Enter new password',
+    'devices.command.reboot.confirm': 'Are you sure you want to reboot device ${deviceNumber}?',
+    'devices.command.factoryReset.confirm': 'WARNING: This will erase all data on device ${deviceNumber}. Continue?',
+    'devices.command.reboot.sent': 'Reboot command sent successfully',
+    'devices.command.factoryReset.sent': 'Factory reset command sent successfully',
+    'devices.command.lock.sent': 'Lock command sent successfully',
+    'devices.command.passwordReset.sent': 'Password reset command sent successfully',
+
     'button.apply': 'Apply',
     'button.gps.on': 'Enable GPS',
     'button.wifi.on': 'Enable Wi-Fi',

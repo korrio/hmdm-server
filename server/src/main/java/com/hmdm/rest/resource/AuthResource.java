@@ -26,10 +26,13 @@ import com.hmdm.persistence.CommonDAO;
 import com.hmdm.persistence.CustomerDAO;
 import com.hmdm.persistence.UnsecureDAO;
 import com.hmdm.persistence.domain.Settings;
+import com.hmdm.persistence.domain.UserRole;
 import com.hmdm.rest.filter.AuthFilter;
 import com.hmdm.rest.json.AuthOptionsResponse;
+import com.hmdm.rest.json.RegisterRequest;
 import com.hmdm.rest.json.Response;
 import com.hmdm.rest.json.UserCredentials;
+import com.hmdm.persistence.domain.Customer;
 import com.hmdm.persistence.domain.User;
 import com.hmdm.rest.json.view.user.UserView;
 import com.hmdm.service.EmailService;
@@ -47,6 +50,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.List;
 
 /**
  * <p>A resource for authenticating the users based on provided login/password credentials.</p>
@@ -204,5 +208,75 @@ public class AuthResource {
             response.setPublicKey(encoded);
         }
         return Response.OK(response);
+    }
+
+    /**
+     * <p>Registers a new user account for the default customer.</p>
+     *
+     * @param request the registration request containing user details.
+     * @return a response indicating success or failure.
+     */
+    @POST
+    @Path("/register")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response register(RegisterRequest request) {
+        // Validate request
+        if (request.getLogin() == null || request.getLogin().isEmpty()) {
+            return Response.ERROR("error.params.missing", List.of("login"));
+        }
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
+            return Response.ERROR("error.params.missing", List.of("email"));
+        }
+        if (request.getPassword() == null || request.getPassword().isEmpty()) {
+            return Response.ERROR("error.params.missing", List.of("password"));
+        }
+        if (request.getName() == null || request.getName().isEmpty()) {
+            return Response.ERROR("error.params.missing", List.of("name"));
+        }
+
+        // Check if login already exists
+        User existingUser = userDAO.findByLogin(request.getLogin());
+        if (existingUser != null) {
+            return Response.ERROR("error.login.exists");
+        }
+
+        // Check if email already exists
+        User existingEmail = userDAO.findByEmail(request.getEmail());
+        if (existingEmail != null) {
+            return Response.ERROR("error.email.exists");
+        }
+
+        // Get the default customer (ID 1)
+        Customer customer = customerDAO.findById(1);
+        if (customer == null) {
+            return Response.INTERNAL_ERROR();
+        }
+
+        // Get the default user role (Наблюдатель = Viewer)
+        UserRole userRole = userDAO.findRoleByNameUnsecure("Наблюдатель");
+        if (userRole == null) {
+            // Fallback to Administrator role
+            userRole = userDAO.findRoleByNameUnsecure("Администратор");
+        }
+        if (userRole == null) {
+            return Response.INTERNAL_ERROR();
+        }
+
+        // Create new user
+        User user = new User();
+        user.setLogin(request.getLogin());
+        user.setEmail(request.getEmail());
+        user.setName(request.getName());
+        user.setPassword(PasswordUtil.getHashFromRaw(request.getPassword()));
+        user.setCustomerId(customer.getId());
+        user.setUserRole(userRole);
+        user.setAllDevicesAvailable(true);
+        user.setAllConfigAvailable(true);
+        user.setPasswordReset(false);
+
+        userDAO.updateUserUnsecure(user);
+
+        return Response.OK();
     }
 }

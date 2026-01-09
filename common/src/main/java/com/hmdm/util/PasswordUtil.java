@@ -31,7 +31,9 @@ public class PasswordUtil {
     }
 
     public static boolean passwordMatch(String enteredPass, String dbPass) {
-        return getHashFromMd5(enteredPass).equalsIgnoreCase(dbPass);
+        // Normalize MD5 hash to lowercase before hashing to support both upper and lowercase hashes
+        String normalizedPass = enteredPass != null ? enteredPass.toLowerCase() : enteredPass;
+        return getHashFromMd5(normalizedPass).equalsIgnoreCase(dbPass);
     }
 
     public static boolean checkPassword(String password, int length, int strength) {

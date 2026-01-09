@@ -977,6 +977,60 @@ angular.module('headwind-kiosk')
             });
         };
 
+        $scope.rebootDevice = function (device) {
+            let localizedText = localization.localize('devices.command.reboot.confirm').replace('${deviceNumber}', device.number);
+            confirmModal.getUserConfirmation(localizedText, function () {
+                deviceService.rebootDevice({number: device.number}, function (response) {
+                    if (response.status === 'OK') {
+                        alertService.showSuccess('devices.command.reboot.sent');
+                    } else {
+                        alertService.showError(response.message);
+                    }
+                });
+            });
+        };
+
+        $scope.factoryResetDevice = function (device) {
+            let localizedText = localization.localize('devices.command.factoryReset.confirm').replace('${deviceNumber}', device.number);
+            confirmModal.getUserConfirmation(localizedText, function () {
+                deviceService.factoryResetDevice({number: device.number}, function (response) {
+                    if (response.status === 'OK') {
+                        alertService.showSuccess('devices.command.factoryReset.sent');
+                    } else {
+                        alertService.showError(response.message);
+                    }
+                });
+            });
+        };
+
+        $scope.lockDevice = function (device) {
+            deviceService.lockDevice({number: device.number}, function (response) {
+                if (response.status === 'OK') {
+                    alertService.showSuccess('devices.command.lock.sent');
+                } else {
+                    alertService.showError(response.message);
+                }
+            });
+        };
+
+        $scope.resetPasswordDevice = function (device) {
+            $scope.passwordInput = '';
+            var modalInstance = $modal.open({
+                templateUrl: 'app/components/main/view/modal/password.reset.html',
+                scope: $scope
+            });
+
+            modalInstance.result.then(function () {
+                deviceService.resetPasswordDevice({number: device.number, password: $scope.passwordInput}, function (response) {
+                    if (response.status === 'OK') {
+                        alertService.showSuccess('devices.command.passwordReset.sent');
+                    } else {
+                        alertService.showError(response.message);
+                    }
+                });
+            });
+        };
+
         $scope.notifyPluginOnDevice = function (plugin, device) {
             $rootScope.$emit('plugin-' + plugin.identifier + '-device-selected', device);
         };
