@@ -207,11 +207,7 @@ public class UserResource {
                 }
                 Settings settings = Optional.ofNullable(settingsDAO.getSettings()).orElse(new Settings());
                 if (user.getId() == null) {
-                    User dbUser = unsecureDAO.findByLogin(user.getLogin());
-                    if (dbUser != null) {
-                        logger.error("Failed to create user {}: duplicate login", user.getLogin());
-                        return Response.ERROR("error.duplicate.login");
-                    }
+                    // Allow duplicate login - removed duplicate check
                     // Password is required for new users only
                     if (user.getNewPassword() == null) {
                         logger.warn("Failed to create user {}: empty password", user.getLogin());
@@ -221,11 +217,7 @@ public class UserResource {
                     updatePasswordWithReset(user, user.getNewPassword(), settings.isPasswordReset());
                     this.userDAO.insert(user);
                 } else {
-                    User dbUser = unsecureDAO.findByLogin(user.getLogin());
-                    if (dbUser != null && !user.getId().equals(dbUser.getId())) {
-                        logger.error("Failed to create user {}: duplicate login", user.getLogin());
-                        return Response.ERROR("error.duplicate.login");
-                    }
+                    // Allow duplicate login - removed duplicate check
                     this.userDAO.updateUserMainDetails(user);
                     // Update password only if it's specified
                     if (user.getNewPassword() != null && !user.getNewPassword().isEmpty()) {
@@ -238,7 +230,7 @@ public class UserResource {
             } catch (Exception e) {
                 logger.error("Failed to create user {}: ", user.getLogin(), e);
                 e.printStackTrace();
-                return Response.ERROR("error.duplicate.login");
+                return Response.ERROR(e.getMessage());
             }
         }).orElse(Response.PERMISSION_DENIED());
     }

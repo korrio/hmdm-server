@@ -193,7 +193,12 @@ public class GroupResource {
             CreditUpdateRequest request) {
         try {
             User user = SecurityContext.get().getCurrentUser().orElse(null);
-            if (user == null || !user.isAllDevicesAvailable()) {
+            // Allow if user has allDevicesAvailable OR has admin/superadmin role (id = 1 or 2)
+            boolean hasPermission = user != null && (
+                user.isAllDevicesAvailable() ||
+                (user.getUserRole() != null && (user.getUserRole().getId() == 1 || user.getUserRole().getId() == 2))
+            );
+            if (!hasPermission) {
                 log.error("Unauthorized attempt to update group credit by user " +
                         SecurityContext.get().getCurrentUserName());
                 return Response.PERMISSION_DENIED();

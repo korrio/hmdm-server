@@ -122,6 +122,35 @@ public class DeviceCommandsResource {
         return Response.OK();
     }
 
+    /**
+     * Uninstall MDM from a device (for device sale or removal)
+     */
+    @POST
+    @Path("/private/uninstall-mdm/{number}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Uninstall MDM", notes = "Sends an uninstall MDM command to the specified device and removes it from management",
+            authorizations = {@Authorization("Bearer Token")})
+    public Response uninstallMDM(@PathParam("number") String deviceNumber) {
+        try {
+            Device device = deviceDAO.getDeviceByNumber(deviceNumber);
+            if (device == null) {
+                return Response.ERROR("Device not found: " + deviceNumber);
+            }
+
+            PushMessage message = new PushMessage();
+            message.setDeviceId(device.getId());
+            message.setMessageType("uninstallMdm");
+
+            pushService.send(message);
+            logger.info("Uninstall MDM command sent to device: {}", deviceNumber);
+            return Response.OK();
+        } catch (Exception e) {
+            logger.error("Failed to send uninstall MDM command to device {}", deviceNumber, e);
+            return Response.ERROR("Failed to send uninstall command");
+        }
+    }
+
     private Response sendCommand(String deviceNumber, String commandType) {
         try {
             Device device = deviceDAO.getDeviceByNumber(deviceNumber);
