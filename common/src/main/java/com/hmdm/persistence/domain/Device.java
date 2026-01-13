@@ -71,6 +71,10 @@ public class Device implements CustomerData, Serializable {
     @ApiModelProperty("A list of groups assigned to device")
     private List<LookupItem> groups;
 
+    // Helper field for receiving group IDs from frontend
+    @ApiModelProperty(hidden = true)
+    private List<Integer> groupIds;
+
     // Helper fields, not persisted
     @ApiModelProperty(hidden = true)
     private List<Integer> ids;
@@ -279,6 +283,14 @@ public class Device implements CustomerData, Serializable {
 
     public void setGroups(List<LookupItem> groups) {
         this.groups = groups;
+    }
+
+    public List<Integer> getGroupIds() {
+        return groupIds;
+    }
+
+    public void setGroupIds(List<Integer> groupIds) {
+        this.groupIds = groupIds;
     }
 
     public String getLauncherVersion() {

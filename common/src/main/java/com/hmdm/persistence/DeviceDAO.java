@@ -195,10 +195,15 @@ public class DeviceDAO extends AbstractDAO<Device> {
         insertRecord(device, d -> {
             d.updateFastSearch(fastSearchChars);
             this.mapper.insertDevice(d);
-            if (d.getGroups() != null && !d.getGroups().isEmpty()) {
-                this.mapper.insertDeviceGroups(
-                        d.getId(), d.getGroups().stream().map(LookupItem::getId).collect(Collectors.toList())
-                );
+            // Handle both groups (List<LookupItem>) and groupIds (List<Integer>)
+            List<Integer> groupIds = null;
+            if (d.getGroupIds() != null && !d.getGroupIds().isEmpty()) {
+                groupIds = d.getGroupIds();
+            } else if (d.getGroups() != null && !d.getGroups().isEmpty()) {
+                groupIds = d.getGroups().stream().map(LookupItem::getId).collect(Collectors.toList());
+            }
+            if (groupIds != null && !groupIds.isEmpty()) {
+                this.mapper.insertDeviceGroups(d.getId(), groupIds);
             }
             this.eventService.fireEvent(new DeviceInfoUpdatedEvent(d.getId()));
         });
