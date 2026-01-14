@@ -69,7 +69,18 @@ public class GroupDAO extends AbstractDAO<Group> {
     }
 
     public void updateGroup(Group group) {
-        updateRecord(group, this.mapper::updateGroup, SecurityException::onGroupAccessViolation);
+        // First get the existing group (with security check)
+        Group existingGroup = getSingleRecord(
+                () -> this.mapper.getGroupById(group.getId()),
+                SecurityException::onGroupAccessViolation
+        );
+
+        // Update only the fields that can be changed from frontend
+        existingGroup.setName(group.getName());
+        existingGroup.setCredit(group.getCredit());
+
+        // Update the record
+        this.mapper.updateGroup(existingGroup);
     }
 
     public void removeGroupById(Integer id) {
