@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class SimpleCORSFilter implements Filter {
-    private static final String ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001";
+    private static final String ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,http://localhost:8888";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
