@@ -76,9 +76,10 @@
 
         <!-- The formatting of this line must be kept as is - a single line -->
         <!-- The formatting of this line must be kept as is - a single line -->
-        <dependency><groupId>com.hmdm.plugin</groupId><artifactId>devicelog-core</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- devicelog plugin disabled (commented out to skip 40M+ records migration) -->
+        <!-- <dependency><groupId>com.hmdm.plugin</groupId><artifactId>devicelog-core</artifactId><version>0.1.0</version><scope>runtime</scope></dependency> -->
         <!-- The formatting of this line must be kept as is - a single line -->
-        <dependency><groupId>com.hmdm.plugin</groupId><artifactId>devicelog-postgres</artifactId><version>0.1.0</version><scope>runtime</scope></dependency>
+        <!-- <dependency><groupId>com.hmdm.plugin</groupId><artifactId>devicelog-postgres</artifactId><version>0.1.0</version><scope>runtime</scope></dependency> -->
         <!-- The formatting of this line must be kept as is - a single line -->
         <!-- The formatting of this line must be kept as is - a single line -->
         <!-- The formatting of this line must be kept as is - a single line -->
@@ -143,7 +144,7 @@
                 </executions>
             </plugin>
 
-            <!-- Copy web files from each plugin to the server project -->
+            <!-- Copy web files from each plugin to the server project (excluding devicelog) -->
             <plugin>
                 <groupId>com.soebes.maven.plugins</groupId>
                 <artifactId>iterator-maven-plugin</artifactId>
@@ -156,6 +157,9 @@
                         </goals>
                         <configuration>
                             <folder>../plugins/</folder>
+                            <excludes>
+                                <exclude>devicelog/**</exclude>
+                            </excludes>
                             <pluginExecutors>
                                 <pluginExecutor>
                                     <plugin>
